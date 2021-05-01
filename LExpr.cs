@@ -1,6 +1,6 @@
 ﻿namespace DynamicExpr
 {
-    internal class LExpr
+    public class LExpr
     {
         private string token;
 

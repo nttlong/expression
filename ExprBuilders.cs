@@ -6,227 +6,209 @@ using System.Text;
 
 namespace DynamicExpr
 {
-    public class StringToFormula
+    public static class ExprBuilders
     {
-        const string operators = " ( ) ^ * / + - = != <> and or ";
-        private  string[] _operators = { "-", "+", "/", "*", "^","=","!=","<>","and","or"};
-       
 
-        public object Eval(string expression)
+        public static LambdaExpression ToLambdaExpression(
+            Type type, string StrExpr,
+            object ParamsObject)
         {
-            List<string> tokens = getTokens(expression);
-            Stack<object> operandStack = new Stack<object>();
-            Stack<string> operatorStack = new Stack<string>();
-            int tokenIndex = 0;
-           
-            while (tokenIndex < tokens.Count)
-            {
-                string token = tokens[tokenIndex];
-                object preOperand = null;
-                
-                if (token == "(")
-                {
-                    
-                    if (operandStack.Count > 0)
-                    {
-                        preOperand= operandStack.Pop();
-                    }
-                    
-                    if (preOperand is VExpr)
-                    {
-                        
-                        string subExpr = getSubExpression(tokens, ref tokenIndex);
-                        var fx = new StringToFormula();
-                        var indexOfCom = -1;
-                        List<object> _args = null;
-                        if ((indexOfCom=subExpr.IndexOf(",")) > -1)
-                        {
-                            var left = (new StringToFormula()).Eval(subExpr.Split(',')[0]);
-                            var rStr = subExpr.Substring(indexOfCom + 1, subExpr.Length - indexOfCom - 1);
-                            var right = (new StringToFormula()).Eval(subExpr.Substring(indexOfCom+1, subExpr.Length-indexOfCom-1));
-                            _args=ParseArgs(right);
-                            _args.Insert(0, left);
-                        }
-                        var args=fx.Eval(subExpr);
-                        var ret = new FExpr()
-                        {
-                            Name= (preOperand as VExpr).Value,
-                            Args = _args??(new object[] { args }).ToList()
-                        };
-                        //var args = Eval(subExpr);
-                        operandStack.Push(ret);
-                    }
-                    else
-                    {
-                        string subExpr = getSubExpression(tokens, ref tokenIndex);
-                        if (preOperand != null)
-                        {
-                            operandStack.Push(preOperand);
-                        }
-                        operandStack.Push(Eval(subExpr));
-                    }
-                    continue;
-                }
-                if (token == ")")
-                {
-                    throw new ArgumentException("Mis-matched parentheses in expression");
-                }
-                //If this is an operator  
-                if (Array.IndexOf(_operators, token) >= 0)
-                {
-                    while (operatorStack.Count > 0 && Array.IndexOf(_operators, token) < Array.IndexOf(_operators, operatorStack.Peek()))
-                    {
-                        string op = operatorStack.Pop();
-                        object arg2 = operandStack.Pop();
-                        object arg1 = operandStack.Pop();
-                        var BExpr = new BExpr
-                        {
-                            Operator= _operators[Array.IndexOf(_operators, op)],
-                            Left=arg1,
-                            Right=arg2
-                        };
-                        operandStack.Push(BExpr);
-                    }
-                    operatorStack.Push(token);
-                }
-                else
-                {
-                    operandStack.Push(new VExpr(token));
-                }
-                tokenIndex += 1;
-            }
-
-            while (operatorStack.Count > 0)
-            {
-                string op = operatorStack.Pop();
-                object arg2 = operandStack.Pop();
-                object arg1 = operandStack.Pop();
-                var ret = new BExpr
-                {
-                    Left=arg1,
-                    Right=arg2,
-                    Operator= this._operators[Array.IndexOf(_operators, op)]
-                };
-                operandStack.Push(ret);
-            }
-            return operandStack.Pop();
-        }
-
-        private List<object> ParseArgs(object Expr)
-        {
-            if(Expr is VExpr)
-            {
-                var vExpr = Expr as VExpr;
-                return 
-                    vExpr.Value.Split(',')
-                    .Select(p => (new StringToFormula()).Eval(p))
-                    .ToList();
-            }
+            var Pr = Expression.Parameter(type,"p");
+            var Expr = StrExpr.FixBracket().FixSpace().ToFxExpression();
+            Expression x = null;
             if(Expr is BExpr)
             {
-                var bExpr = Expr as BExpr;
-                var lItems = ParseArgs(bExpr.Left);
-                var lX = lItems[lItems.Count - 1];
-                var rItems = ParseArgs(bExpr.Right);
-                var rX = rItems[0];
-                var ret = new List<object>();
-                ret.AddRange(lItems.Where(p => p != lX));
-                ret.Add(new BExpr { 
-                    Left=lX,
-                    Right=rX,
-                    Operator=bExpr.Operator
-                });
-                ret.AddRange(rItems.Where(p => p != rX));
-                return ret;
+                x= ToConditionlExpression(Pr, Expr as BExpr, ParamsObject);
+                return Expression.Lambda(x,Pr);
             }
             if(Expr is FExpr)
             {
-                return (new object[] { Expr }).ToList();
+                throw new NotImplementedException();
             }
             throw new NotImplementedException();
         }
 
-        private static string getSubExpression(List<string> tokens, ref int index)
+        private static Expression ToConditionlExpression(ParameterExpression Pr, BExpr bExpr, object paramsObject)
         {
-            StringBuilder subExpr = new StringBuilder();
-            int parenlevels = 1;
-            index += 1;
-            while (index < tokens.Count && parenlevels > 0)
+            if(bExpr.Operator=="="||
+               bExpr.Operator=="==")
             {
-                string token = tokens[index];
-                if (tokens[index] == "(")
-                {
-                    parenlevels += 1;
-                }
-
-                if (tokens[index] == ")")
-                {
-                    parenlevels -= 1;
-                }
-
-                if (parenlevels > 0)
-                {
-                    subExpr.Append(token);
-                }
-
-                index += 1;
+                Expression left = ToExpression(Pr, bExpr.Left, paramsObject);
+                Expression right = ToExpression(Pr, bExpr.Right, paramsObject);
+                return Expression.Equal(left, right);
             }
-
-            if ((parenlevels > 0))
+            if (bExpr.Operator == "+" )
             {
-                throw new ArgumentException("Mis-matched parentheses in expression");
+                Expression left = ToExpression(Pr, bExpr.Left, paramsObject);
+                Expression right = ToExpression(Pr, bExpr.Right, paramsObject);
+                MakeSureLeftAndRighIsTheSameType(ref left, ref right);
+                return Expression.Add(left, right);
             }
-            return subExpr.ToString();
+            if (bExpr.Operator == "-")
+            {
+                Expression left = ToExpression(Pr, bExpr.Left, paramsObject);
+                Expression right = ToExpression(Pr, bExpr.Right, paramsObject);
+                MakeSureLeftAndRighIsTheSameType(ref left, ref right);
+                return Expression.Subtract(left, right);
+            }
+            if (bExpr.Operator == "*")
+            {
+                Expression left = ToExpression(Pr, bExpr.Left, paramsObject);
+                Expression right = ToExpression(Pr, bExpr.Right, paramsObject);
+                MakeSureLeftAndRighIsTheSameType(ref left, ref right);
+                return Expression.Multiply(left, right);
+            }
+            if (bExpr.Operator == "/")
+            {
+                Expression left = ToExpression(Pr, bExpr.Left, paramsObject);
+                Expression right = ToExpression(Pr, bExpr.Right, paramsObject);
+                MakeSureLeftAndRighIsTheSameType(ref left, ref right);
+                return Expression.Divide(left, right);
+            }
+            if (bExpr.Operator == "%")
+            {
+                Expression left = ToExpression(Pr, bExpr.Left, paramsObject);
+                Expression right = ToExpression(Pr, bExpr.Right, paramsObject);
+                MakeSureLeftAndRighIsTheSameType(ref left, ref right);
+                return Expression.Modulo(left, right);
+            }
+            if (bExpr.Operator == "^")
+            {
+                Expression left = ToExpression(Pr, bExpr.Left, paramsObject);
+                Expression right = ToExpression(Pr, bExpr.Right, paramsObject);
+                left = Expression.Convert(left, typeof(double));
+
+                MakeSureLeftAndRighIsTheSameType(ref left, ref right);
+                var mc = typeof(Math).GetMethod("Pow");
+
+                return Expression.Call(mc,left, right);
+            }
+            if (bExpr.Operator == "&")
+            {
+                Expression left = ToExpression(Pr, bExpr.Left, paramsObject);
+                Expression right = ToExpression(Pr, bExpr.Right, paramsObject);
+                var mci = typeof(String).GetMethods().FirstOrDefault(p => p.Name == "Concat");
+                return Expression.Call(mci, left, right);
+            }
+            if (bExpr.Operator.ToLower() == "and"||
+                bExpr.Operator=="&&")
+            {
+                Expression left = ToExpression(Pr, bExpr.Left, paramsObject);
+                Expression right = ToExpression(Pr, bExpr.Right, paramsObject);
+                return Expression.AndAlso(left, right);
+            }
+            throw new NotImplementedException();
         }
 
-        private static List<string> getTokens(string expression)
+        private static void MakeSureLeftAndRighIsTheSameType(ref Expression left, ref Expression right)
         {
-            
-            List<string> tokens = new List<string>();
-            StringBuilder sb = new StringBuilder();
-
-            foreach (char c in expression)//.Replace(" ", string.Empty))
+            if (right is UnaryExpression)
             {
-                if (operators.IndexOf(" "+c+" ") >= 0)
+                var ux = right as UnaryExpression;
+                if (ux.Operand is ConstantExpression)
                 {
-                    if ((sb.Length > 0))
+                    var val = Convert.ChangeType(((ConstantExpression)ux.Operand).Value, left.Type);
+                    right = Expression.Constant(val);
+                }
+                return;
+            }
+            if (left is MemberExpression)
+            {
+                if (right is UnaryExpression)
+                {
+                    var ux = right as UnaryExpression;
+                    if (ux.Operand is ConstantExpression)
                     {
-                        tokens.Add(sb.ToString());
-                        sb.Length = 0;
+                        var val = Convert.ChangeType(((ConstantExpression)ux.Operand).Value, left.Type);
+                        right = Expression.Constant(val);
                     }
-                    tokens.Add(c.ToString());
+                    return;
+                }
+
+                return;
+            }
+            if(left is UnaryExpression)
+            {
+                var rType = right.Type;
+                var ux = left as UnaryExpression;
+                if (ux.Operand is ConstantExpression)
+                {
+                    var val = Convert.ChangeType(((ConstantExpression)ux.Operand).Value, right.Type);
+                    left = Expression.Constant(val);
+                }
+                return;
+            }
+            if (left is ConstantExpression)
+            {
+                var val = Convert.ChangeType(((ConstantExpression)left).Value, left.Type);
+                left = Expression.Constant(val);
+                return;
+            }
+            throw new NotImplementedException();
+        }
+
+        internal static Expression ToExpression(ParameterExpression Pr, FXExpr Expr,object paramsObject)
+        {
+            if(Expr is NExpr)
+            {
+               
+                var nExpr = Expr as NExpr;
+                if (nExpr.ValueType!=ConstTypeEnum.None)
+                {
+                    var Cx = Expression.Constant(nExpr.GetValue());
+                    return Expression.Convert(Cx, typeof(object));
                 }
                 else
                 {
-                    if (c != ' ')
+                    var mb = Pr.Type.GetProperties().FirstOrDefault(p => p.Name.ToLower() == nExpr.Value.ToLower());
+                    if (mb == null)
                     {
-                        sb.Append(c);
+                        throw new Exception($"'{nExpr.Value}' was not found in ${Pr.Type.FullName}");
                     }
-                    else
-                    {
-                        tokens.Add(sb.ToString());
-                        sb.Clear();
-                    }
+                    var ret = Expression.MakeMemberAccess(Pr, mb);
+                    return ret;
                 }
             }
-
-            if ((sb.Length > 0))
+            if(Expr is BExpr)
             {
-                tokens.Add(sb.ToString());
+                return ToConditionlExpression(Pr, Expr as BExpr,paramsObject);
             }
-            tokens= tokens.Where(p=>!string.IsNullOrEmpty(p)).ToList();
-            return tokens;
+            if (Expr is PExpr)
+            {
+                return ToConstExpression(Expr as PExpr, paramsObject);
+            }
+            throw new NotImplementedException();
         }
-    }
-    public static class ExprBuilders
-    {
-        public static string ToFormal(this string Expr,Type type)
+        /// <summary>
+        /// Covert to const
+        /// </summary>
+        /// <param name="pExpr"></param>
+        /// <param name="paramsObject"></param>
+        /// <exception cref="ParameterNotFoundException"/>
+        /// <returns></returns>
+        public static Expression ToConstExpression(PExpr pExpr, object paramsObject)
         {
-            return "";
+            if (paramsObject == null) return null;
+            var P = paramsObject.GetType().GetProperties().FirstOrDefault(p => p.Name.ToLower() == pExpr.Name.ToLower());
+            if (P == null)
+            {
+                throw new ParameterNotFoundException($"'{pExpr.Name}' was not found") { 
+                
+                       ParamName=pExpr.Name,
+                       ParamRef=paramsObject
+                };
+            }
+            var constVal = Expression.Constant(P.GetValue(paramsObject));
+            var ret = Expression.Convert(constVal, typeof(object));
+            return ret;
         }
-        public static LambdaExpression MakeConditional(Type type, string StrExpr)
+
+        internal static object GetVal(Type type, string value, object paramsObject)
         {
-            throw new NotFiniteNumberException();
+            if (paramsObject == null) return null;
+            var P = paramsObject.GetType().GetProperties().FirstOrDefault(p => p.Name.ToLower() == value.ToLower());
+            if (P == null) return null;
+            return P.GetValue(paramsObject);
         }
     }
 }
