@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -7,6 +8,47 @@ namespace DynamicExpr
 {
     public static class Extension
     {
+        public static string[] SplitExp(this string Expr)
+        {
+            var index = Expr.IndexOf(",");
+            if(index==-1)
+            {
+                return new string[] {Expr };
+            }
+            var items = Expr.Split(',');
+            var st = new Stack<string>();
+            var ret = new List<string>();
+            for(var i=0;i<items.Length;i++)
+            {
+                var item = items[i];
+                if (st.Count > 0)
+                {
+                    item = st.Pop() + "," + item;
+                }
+                if (item.Count(p=>p==')') == item.Count(p=>p=='('))
+                {
+                   
+                    ret.Add(item.TrimStart(' ').TrimEnd(' '));
+                }
+                else
+                {
+                    st.Push(item);
+                }
+
+            }
+            return ret.ToArray();
+        }
+        internal static string[] ExtractAlais(this string Expr)
+        {
+            var lastIndex = Expr.LastIndexOf(" ");
+            if (lastIndex == -1)
+            {
+                throw new InvalidSyntaxException($"'{Expr} is invalid'");
+            }
+            var left = Expr.Substring(0, lastIndex);
+            var right = Expr.Substring(lastIndex + 1, Expr.Length - lastIndex - 1);
+            return new string[] {left,right };
+        }
         internal static string FixBracket(this string Expr)
         {
             var R = new Regex(@"/not|and|x?or|&&|[<>!=]=|[<>&!]|\|{1,2}|=|=",RegexOptions.IgnoreCase);

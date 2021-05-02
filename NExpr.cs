@@ -18,8 +18,10 @@ namespace DynamicExpr
         }
         public ConstTypeEnum ValueType
         {
+            //[System.Diagnostics.DebuggerStepThrough]
             get
             {
+                if (this.token == "'") return ConstTypeEnum.Text;
                 if (this.token[0] == "'".ToCharArray()[0] &&
                     this.token[this.token.Length - 1] == "'".ToCharArray()[0])
                 {
@@ -66,6 +68,18 @@ namespace DynamicExpr
             if (this.ValueType == ConstTypeEnum.Int)
             {
                 return long.Parse(this.token);
+            }
+            if (this.ValueType == ConstTypeEnum.Text)
+            {
+                return this.token;
+            }
+            if (this.ValueType == ConstTypeEnum.Date)
+            {
+                return DateTime.Parse(this.token);
+            }
+            if (this.ValueType == ConstTypeEnum.Numeric)
+            {
+                return Decimal.Parse(this.token);
             }
             throw new NotImplementedException();
         }
