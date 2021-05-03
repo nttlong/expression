@@ -13,6 +13,7 @@ namespace DynamicExpr
     {
         static void Main(string[] args)
         {
+            //Test lan cuoi
             var FX = ExprBuilders.CreateFilter<MyClass>("Code={code}",new { code="XX" });
             FX = ExprBuilders.CreateFilter<MyClass>("Code={code} and Name={name}", new { code = "XX" });
             FX = ExprBuilders.CreateFilter<MyClass>("Code={code}", new { code = "XX" });
