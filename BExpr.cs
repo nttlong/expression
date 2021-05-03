@@ -14,5 +14,20 @@ namespace DynamicExpr
         {
             return "("+Left.ToString()+")"+Operator+"("+Right.ToString()+")";
         }
+        public override string ToCSharpLamdaExpr(object ParamsObject)
+        {
+            var op = Operator;
+            if ("+,-,*,/,%,^".IndexOf(op) == -1)
+            {
+                if (op == "=") op = "==";
+                else if (op == "and") op = "&&";
+                else if (op == "or") op = "||";
+                else
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            return "(" + Left.ToCSharpLamdaExpr(ParamsObject) + ")" + op + "(" + Right.ToCSharpLamdaExpr(ParamsObject) + ")";
+        }
     }
 }

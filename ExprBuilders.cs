@@ -1,10 +1,13 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
+using System.Threading;
 
 namespace DynamicExpr
 {
@@ -15,6 +18,66 @@ namespace DynamicExpr
             var expr = ToLambdaExpression(typeof(T), StrLogicalExpr, ParamsObject);
             return expr as Expression<Func<T, bool>>;
         }
+        public static LambdaExpression CreateFilter(Type type,string StrLogicalExpr, object ParamsObject)
+        {
+            var Expr = StrLogicalExpr.FixBracket().FixSpace().ToFxExpression();
+            var strType = $"{type.Assembly.GetName().Name}.{type.Name}";
+            string lx = Expr.ToCSharpLamdaExpr(ParamsObject);
+            var txtScript = @"
+                System.Linq.Expressions.Expression<System.Func<" + strType + @",object>> X=p=>" + lx + @";;
+                return X;";
+            var tt = CSharpScript.EvaluateAsync(
+               txtScript,
+                ScriptOptions.Default.WithReferences(
+                    type.Assembly,
+                    typeof(Expression).Assembly
+                    )
+                ).GetAwaiter().GetResult() as LambdaExpression;
+            var ret = Expression.Lambda((tt.Body as UnaryExpression).Operand, tt.Parameters);
+            return ret;
+          
+        }
+
+        internal static Expression<Func<T, dynamic>> CreateSelection<T>(Dictionary<string, string> Dict, object ParamsObject)
+        {
+            return CreateSelection(typeof(T), Dict, ParamsObject) as Expression<Func<T, dynamic>>;
+        }
+
+        internal static LambdaExpression CreateSelection(
+            Type type, 
+            Dictionary<string, string> Dict, 
+            object ParamsObject)
+        {
+            var txtScript = "new {";
+            foreach(var x in Dict)
+            {
+                var fx = x.Value.FixBracket().FixSpace().ToFxExpression();
+                txtScript += x.Key + "=" + fx.ToCSharpLamdaExpr(ParamsObject) + ",";
+            }
+            var strType = $"{type.Assembly.GetName().Name}.{type.Name}";
+            txtScript = txtScript.TrimEnd(',')+"}";
+            
+            var txtScriptCompile = @"
+                System.Linq.Expressions.Expression<System.Func<" + strType + @",object>> X=p=>" + txtScript + @";;
+                return X;";
+            var ret = CSharpScript.EvaluateAsync(
+               txtScriptCompile,
+                ScriptOptions.Default.WithReferences(
+                    type.Assembly,
+                    typeof(Expression).Assembly
+                    )
+                ).GetAwaiter().GetResult() as LambdaExpression;
+            return ret;
+           // throw new NotImplementedException();
+        }
+
+        public static Expression<Func<T, bool>> CreateFilter<T>(string StrLogicalExpr, object ParamsObject)
+        {
+            return CreateFilter(typeof(T), StrLogicalExpr, ParamsObject) as Expression<Func<T, bool>>;
+        }
+
+        
+
         public static LambdaExpression ToLambdaExpression(
             Type type, string StrExpr,
             object ParamsObject)
@@ -346,22 +409,30 @@ namespace DynamicExpr
         }
         public static Type CreateNewType(Dictionary<string,Type> Dict)
         {
+            AppDomain myDomain = Thread.GetDomain();
+            
+            var asmName = $"#{Guid.NewGuid().ToString()}";
+            var typeName = $"##{asmName}";
             // Let's start by creating a new assembly
-            AssemblyName dynamicAssemblyName = new AssemblyName("#$DynamicAsm");
-            AssemblyBuilder dynamicAssembly = AssemblyBuilder.DefineDynamicAssembly(dynamicAssemblyName, AssemblyBuilderAccess.Run);
-            ModuleBuilder dynamicModule = dynamicAssembly.DefineDynamicModule("#$DynamicAsm");
+            AssemblyName dynamicAssemblyName = new AssemblyName(typeof(ExprBuilders).Assembly.GetName().Name);
+            AssemblyBuilder dynamicAssembly = AssemblyBuilder.DefineDynamicAssembly(
+                dynamicAssemblyName, 
+                AssemblyBuilderAccess.RunAndCollect);
+            ModuleBuilder dynamicModule = dynamicAssembly.DefineDynamicModule(asmName);
             
             // Now let's build a new type
             TypeBuilder dynamicAnonymousType = dynamicModule.DefineType(
-                $"#{Guid.NewGuid().ToString()}", TypeAttributes.Public);
-            foreach(var x in Dict)
+                typeName,
+                TypeAttributes.Public);
+            foreach (var x in Dict)
             {
                var custNamePropBldr= dynamicAnonymousType.DefineProperty(x.Key,PropertyAttributes.HasDefault, x.Value,null);
                 // The property set and property get methods require a special
                 // set of attributes.
                 MethodAttributes getSetAttr =
-                    MethodAttributes.Public | MethodAttributes.SpecialName |
-                        MethodAttributes.HideBySig;
+                    MethodAttributes.Public;
+                    //| MethodAttributes.SpecialName 
+                    //| MethodAttributes.HideBySig;
                 var fKey = x.Key[0].ToString().ToLower() + x.Key.Substring(1, x.Key.Length - 1);
                 FieldBuilder customerNameBldr = dynamicAnonymousType.DefineField($"{fKey}",
                                                         x.Value,
@@ -394,18 +465,27 @@ namespace DynamicExpr
                 dynamicAnonymousType.DefineField(x.Key, x.Value, FieldAttributes.Public);
             }
             Type[] constructorArgs = Dict.Select(p=>p.Value).ToArray();
-            var ctor = dynamicAnonymousType.DefineConstructor(MethodAttributes.Public,
-                      CallingConventions.Standard, constructorArgs);
-            
+            ConstructorBuilder ctor1 = dynamicAnonymousType.DefineConstructor(MethodAttributes.Public,
+                      CallingConventions.Standard|
+                      CallingConventions.HasThis|
+                      CallingConventions.ExplicitThis, constructorArgs);
+            var ctor2 = dynamicAnonymousType.DefineConstructor(MethodAttributes.Public,
+                      CallingConventions.ExplicitThis, new Type[] { });
             // Generate IL for the method. The constructor stores its argument in the private field.
-            ILGenerator myConstructorIL = ctor.GetILGenerator();
+
+            ILGenerator myConstructorIL = ctor1.GetILGenerator();
             myConstructorIL.Emit(OpCodes.Ldarg_0);
             myConstructorIL.Emit(OpCodes.Ldarg_1);
-            //myConstructorIL.Emit(OpCodes.Stfld, myGreetingField);
+            //myConstructorIL.Emit(OpCodes.Call);
             myConstructorIL.Emit(OpCodes.Ret);
+
+            ILGenerator myConstructorIL2 = ctor2.GetILGenerator();
+            myConstructorIL2.Emit(OpCodes.Ldarg_0);
+            myConstructorIL2.Emit(OpCodes.Ldarg_1);
+            myConstructorIL2.Emit(OpCodes.Ret);
             var ret = dynamicAnonymousType.CreateType();
-            //var ret=ctor.DeclaringType;
-                return ret;
+           
+            return ret;
         }
     }
 }

@@ -1,0 +1,12 @@
+C:\code\20211\bin\Debug\netcoreapp2.2\DynamicExpr.deps.json
+C:\code\20211\bin\Debug\netcoreapp2.2\DynamicExpr.runtimeconfig.json
+C:\code\20211\bin\Debug\netcoreapp2.2\DynamicExpr.runtimeconfig.dev.json
+C:\code\20211\bin\Debug\netcoreapp2.2\DynamicExpr.dll
+C:\code\20211\bin\Debug\netcoreapp2.2\DynamicExpr.pdb
+C:\code\20211\obj\Debug\netcoreapp2.2\DynamicExpr.csprojAssemblyReference.cache
+C:\code\20211\obj\Debug\netcoreapp2.2\DynamicExpr.AssemblyInfoInputs.cache
+C:\code\20211\obj\Debug\netcoreapp2.2\DynamicExpr.AssemblyInfo.cs
+C:\code\20211\obj\Debug\netcoreapp2.2\DynamicExpr.csproj.CoreCompileInputs.cache
+C:\code\20211\obj\Debug\netcoreapp2.2\DynamicExpr.dll
+C:\code\20211\obj\Debug\netcoreapp2.2\DynamicExpr.pdb
+C:\code\20211\obj\Debug\netcoreapp2.2\DynamicExpr.genruntimeconfig.cache

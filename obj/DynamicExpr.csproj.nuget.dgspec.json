@@ -43,11 +43,27 @@
         "netcoreapp2.1": {
           "targetAlias": "netcoreapp2.1",
           "dependencies": {
+            "Microsoft.CodeAnalysis.CSharp": {
+              "target": "Package",
+              "version": "[3.9.0, )"
+            },
+            "Microsoft.CodeAnalysis.CSharp.Scripting": {
+              "target": "Package",
+              "version": "[3.9.0, )"
+            },
+            "Microsoft.CodeAnalysis.Common": {
+              "target": "Package",
+              "version": "[3.9.0, )"
+            },
             "Microsoft.NETCore.App": {
               "suppressParent": "All",
               "target": "Package",
               "version": "[2.1.0, )",
               "autoReferenced": true
+            },
+            "System.Reflection.Emit": {
+              "target": "Package",
+              "version": "[4.7.0, )"
             }
           },
           "imports": [

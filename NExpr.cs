@@ -83,5 +83,33 @@ namespace DynamicExpr
             }
             throw new NotImplementedException();
         }
+        public override string ToCSharpLamdaExpr(object ParamsObject)
+        {
+            if(this.ValueType==ConstTypeEnum.None)
+            {
+                return "p." + this.Value;
+            }
+            else if (this.ValueType==ConstTypeEnum.Text)
+            {
+                if (string.IsNullOrEmpty(this.Value))
+                {
+                    return @"""";
+                }
+                else
+                {
+                    if(this.Value[0]=="'".ToCharArray()[0] && this.Value[this.Value.Length - 1] == "'".ToCharArray()[0])
+                    {
+                        return @"""" + this.Value.Substring(1, this.Value.Length - 2) + @"""";
+                    }
+                    throw new Exception("Syntax is error");
+                }
+            }
+            //else
+            //{
+            //    return this.Value;
+            //}
+            throw new NotImplementedException();
+        }
+
     }
 }
