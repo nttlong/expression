@@ -3372,11 +3372,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\code\\20211\\DynamicExpr.csproj",
+      "projectUniqueName": "C:\\code\\DynamicExpr\\DynamicExpr.csproj",
       "projectName": "DynamicExpr",
-      "projectPath": "C:\\code\\20211\\DynamicExpr.csproj",
+      "projectPath": "C:\\code\\DynamicExpr\\DynamicExpr.csproj",
       "packagesPath": "C:\\Users\\Win10\\.nuget\\packages\\",
-      "outputPath": "C:\\code\\20211\\obj\\",
+      "outputPath": "C:\\code\\DynamicExpr\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
