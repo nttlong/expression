@@ -7,10 +7,10 @@ namespace DynamicExpr
 {
     public static class TokenParsers
     {
-        const string Quote= "$quote";
+        internal const string logicOps = " and or not ";
         internal const string operators = " ( ) ^ * / + - = != <> and or >= <= > < == ' & : ";
         internal static string[] _operators = { "-", "+", "/", "*", "^", "=", "==", ">=", "<=", "!=", "<>", ">", "<", "and", "or","&" };
-
+        
         internal static List<string> ApplyQuote(List<string> Tokens)
         {
             var st = new Stack<string>();
@@ -111,6 +111,112 @@ namespace DynamicExpr
             }
             tokens = tokens.Where(p => !string.IsNullOrEmpty(p)).ToList();
             return ApplyQuote(tokens);
+        }
+        internal static List<string> ToTokens(this string txt)
+        {
+            return GetTokens(txt).FixUnaryLogical("not");
+        }
+        internal static List<string> FixUnaryLogical(this List<string> Tokens, string op)
+        {
+            var ret = new Stack<string>();
+            for(var i = 0; i < Tokens.Count; i++)
+            {
+                var ck = Tokens[i];
+                if (ck == op)
+                {
+                    i++;
+                    var n = Tokens[i];
+                    if (n == "(")
+                    {
+                        ret.Push(ck);
+                        ret.Push(n);
+                        i++;
+                        while(i<Tokens.Count && ((n = Tokens[i]) != ")"))
+                        {
+                            ret.Push(n);
+                            i++;
+                        }
+                        ret.Push(")");
+                        continue;
+                    }
+                    else
+                    {
+                        ret.Push(ck);
+                        ret.Push("(");
+                        ret.Push(n);
+                        i++;
+                        while (i < Tokens.Count &&(logicOps.IndexOf(" "+Tokens[i]+" ")==-1))
+                        {
+                            ret.Push(Tokens[i]);
+                            i++;
+                        }
+                        ret.Push(")");
+                    }
+                    continue;
+                }
+                ret.Push(ck);
+            }
+            var fx= ret.Reverse().ToList();
+            return fx;
+        }
+        internal static List<string> FixBinaryLogical(this List<string> Tokens, string op)
+        {
+            var st = new Stack<string>();
+            for(var i = 0; i < Tokens.Count; i++)
+            {
+                var tk = Tokens[i];
+                if (tk != op)
+                {
+                    st.Push(tk);
+                    continue;
+                }
+                var l = st.Pop();
+                if (l != ")")
+                {
+                    var stl = new Stack<string>();
+                   
+                    stl.Push(")");
+                    stl.Push(l);
+                    l = st.Pop();
+                    while (st.Count>0 &&  logicOps.IndexOf(" "+l+" ")==-1)
+                    {
+                        stl.Push(l);
+                        l = st.Pop();
+                    }
+                   
+                    stl.Push("(");
+                    stl.Push(l);
+                    
+                    while (stl.Count > 0)
+                    {
+                        st.Push(stl.Pop());
+                    }
+                   
+                    st.Push(tk);
+                    i++;
+                    st.Push("(");
+                    while (i < Tokens.Count && logicOps.IndexOf(" " + Tokens[i] + " ") == -1)
+                    {
+                        
+                        st.Push(Tokens[i++]);
+                    }
+                    
+                    st.Push(")");
+                    if (i < Tokens.Count)
+                    {
+                        st.Push(Tokens[i]);
+                    }
+                    continue;
+                }
+                st.Push(l);
+            }
+            var ret= st.Reverse().ToList();
+            
+            return ret;
+        }
+        internal static string RebuilFromTokens(this List<string> Tokens)
+        {
+            return string.Join("", Tokens.ToArray());
         }
     }
 }

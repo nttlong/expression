@@ -13,7 +13,11 @@ namespace DynamicExpr
     {
         static void Main(string[] args)
         {
-            var tk = TokenParsers.GetTokens("FirstName & '--' & LastName");
+            //not((Code={code}+' ') and (x=2))
+            var mm = "not(Code={code}+' ' and d=1 or v<>3)".ToTokens();
+            var rx=mm.FixBinaryLogical("and").FixBinaryLogical("or").FixBinaryLogical("=").FixBinaryLogical("<>");
+            Console.WriteLine(rx.RebuilFromTokens());
+            var tk = TokenParsers.GetTokens("X.FirstName & '--' & X.LastName=M.cODE");
             var fx="FirstName & '--' & LastName".ToFxExpression();
 
             foreach (var x in tk)
@@ -21,7 +25,7 @@ namespace DynamicExpr
                 Console.WriteLine(x);
             }
             //Test lan cuoi
-            //var FX = ExprBuilders.CreateFilter<MyClass>("Code={code}",new { code="XX" });
+            var FX = ExprBuilders.CreateFilter<MyClass>("Code={code}+' '", new { code = "XX" });
             //FX = ExprBuilders.CreateFilter<MyClass>("Code={code} and Name={name}", new { code = "XX" });
             //FX = ExprBuilders.CreateFilter<MyClass>("Code={code}", new { code = "XX" });
             //LambdaExpression SX = ExprBuilders.CreateSelection(typeof(MyClass),

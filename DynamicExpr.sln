@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
-<<<<<<< HEAD
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicExpr", "DynamicExpr\DynamicExpr.csproj", "{E3972AFA-B53C-4C42-B412-FEFBE6437795}"
-=======
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DynamicExpr", "DynamicExpr.csproj", "{4AC6B1AD-8ADA-44AD-96BA-AD96E6515860}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "..\ConsoleApp1\ConsoleApp1.csproj", "{41A0BE4C-20BC-4DEE-8791-4F35C3DC9AA0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "..\ConsoleApp1\ConsoleApp1.csproj", "{41A0BE4C-20BC-4DEE-8791-4F35C3DC9AA0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp2", "..\ConsoleApp2\ConsoleApp2.csproj", "{B02E0D4B-FCA3-40D0-8FC9-1AE57E06BEAC}"
->>>>>>> 945db69ada4283ec204ccc3d8a828473277f7106
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp2", "..\ConsoleApp2\ConsoleApp2.csproj", "{B02E0D4B-FCA3-40D0-8FC9-1AE57E06BEAC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp3", "..\ConsoleApp3\ConsoleApp3.csproj", "{1265EB09-AD26-4368-80F8-25D0EE578FA7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,12 +19,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-<<<<<<< HEAD
 		{E3972AFA-B53C-4C42-B412-FEFBE6437795}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E3972AFA-B53C-4C42-B412-FEFBE6437795}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3972AFA-B53C-4C42-B412-FEFBE6437795}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3972AFA-B53C-4C42-B412-FEFBE6437795}.Release|Any CPU.Build.0 = Release|Any CPU
-=======
 		{4AC6B1AD-8ADA-44AD-96BA-AD96E6515860}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4AC6B1AD-8ADA-44AD-96BA-AD96E6515860}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4AC6B1AD-8ADA-44AD-96BA-AD96E6515860}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -37,16 +35,15 @@ Global
 		{B02E0D4B-FCA3-40D0-8FC9-1AE57E06BEAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B02E0D4B-FCA3-40D0-8FC9-1AE57E06BEAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B02E0D4B-FCA3-40D0-8FC9-1AE57E06BEAC}.Release|Any CPU.Build.0 = Release|Any CPU
->>>>>>> 945db69ada4283ec204ccc3d8a828473277f7106
+		{1265EB09-AD26-4368-80F8-25D0EE578FA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1265EB09-AD26-4368-80F8-25D0EE578FA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1265EB09-AD26-4368-80F8-25D0EE578FA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1265EB09-AD26-4368-80F8-25D0EE578FA7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-<<<<<<< HEAD
-		SolutionGuid = {A536F181-AA33-46DC-B965-B1FF68B47C61}
-=======
 		SolutionGuid = {61C0DF69-801C-4E30-9EDB-81A1D793BA4C}
->>>>>>> 945db69ada4283ec204ccc3d8a828473277f7106
 	EndGlobalSection
 EndGlobal

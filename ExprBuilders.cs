@@ -33,9 +33,32 @@ namespace DynamicExpr
                     typeof(Expression).Assembly
                     )
                 ).GetAwaiter().GetResult() as LambdaExpression;
-            var ret = Expression.Lambda((tt.Body as UnaryExpression).Operand, tt.Parameters);
-            return ret;
+            if (tt.Body is UnaryExpression)
+            {
+                var ret = Expression.Lambda((tt.Body as UnaryExpression).Operand, tt.Parameters);
+                return ret;
+            }
+            if(tt.Body is BinaryExpression)
+            {
+                var bx = tt.Body as BinaryExpression;
+                var left = bx.Left;
+                var right = bx.Right;
+                MakeSureLeftAndRighIsTheSameType(ref left, ref right);
+                Expression newBody = ReBuildBinaryExpression(left, right, bx.NodeType);
+                var ret = Expression.Lambda(newBody, tt.Parameters);
+            }
+         
+            throw new NotImplementedException();
           
+        }
+
+        private static Expression ReBuildBinaryExpression(Expression left, Expression right, ExpressionType nodeType)
+        {
+            if (nodeType == ExpressionType.Add)
+            {
+                return Expression.Add(left, right);
+            }
+            throw new NotImplementedException();
         }
 
         internal static Expression<Func<T, dynamic>> CreateSelection<T>(Dictionary<string, string> Dict, object ParamsObject)
@@ -283,8 +306,14 @@ namespace DynamicExpr
                 {
                     var val = Convert.ChangeType(((ConstantExpression)ux.Operand).Value, right.Type);
                     left = Expression.Constant(val);
+
+                    return;
                 }
-                return;
+                if(ux.Operand is BinaryExpression)
+                {
+
+                }
+                throw new NotImplementedException();
             }
             if (left is ConstantExpression)
             {
