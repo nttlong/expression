@@ -8,13 +8,12 @@ namespace DynamicExpr
 {
     internal class StrParser
     {
-        const string operators = " ( ) ^ * / + - = != <> and or >= <= > < == ";
-        static  string[] _operators = { "-", "+", "/", "*", "^","=","==",">=","<=","!=","<>",">","<","and","or"};
+        
        
 
         public FXExpr Eval(string expression)
         {
-            List<string> tokens = getTokens(expression);
+            List<string> tokens =TokenParsers.GetTokens(expression);
             Stack<FXExpr> operandStack = new Stack<FXExpr>();
             Stack<string> operatorStack = new Stack<string>();
             int tokenIndex = 0;
@@ -77,16 +76,16 @@ namespace DynamicExpr
                     throw new ArgumentException("Mis-matched parentheses in expression");
                 }
                 //If this is an operator  
-                if (Array.IndexOf(_operators, token) >= 0)
+                if (Array.IndexOf(TokenParsers._operators, token) >= 0)
                 {
-                    while (operatorStack.Count > 0 && Array.IndexOf(_operators, token) < Array.IndexOf(_operators, operatorStack.Peek()))
+                    while (operatorStack.Count > 0 && Array.IndexOf(TokenParsers._operators, token) < Array.IndexOf(TokenParsers._operators, operatorStack.Peek()))
                     {
                         string op = operatorStack.Pop();
                         var arg2 = operandStack.Pop();
                         var arg1 = operandStack.Pop();
                         var BExpr = new BExpr
                         {
-                            Operator= _operators[Array.IndexOf(_operators, op)],
+                            Operator= TokenParsers._operators[Array.IndexOf(TokenParsers._operators, op)],
                             Left=arg1,
                             Right=arg2
                         };
@@ -110,7 +109,7 @@ namespace DynamicExpr
                 {
                     Left=arg1,
                     Right=arg2,
-                    Operator= _operators[Array.IndexOf(_operators, op)]
+                    Operator= TokenParsers._operators[Array.IndexOf(TokenParsers._operators, op)]
                 };
                 operandStack.Push(ret);
             }
@@ -188,64 +187,7 @@ namespace DynamicExpr
             return subExpr.ToString();
         }
 
-        private static List<string> getTokens(string expression)
-        {
-            
-            List<string> tokens = new List<string>();
-            StringBuilder sb = new StringBuilder();
-           
-            for (var i=0;i<expression.Length;i++)//.Replace(" ", string.Empty))
-            {
-                var c = expression[i].ToString();
-                if (i + 1 < expression.Length)
-                {
-                    c += expression[i + 1].ToString();
-                }
-                if (operators.IndexOf(" "+c+" ") >= 0)
-                {
-                    if ((sb.Length > 0))
-                    {
-                        tokens.Add(sb.ToString());
-                        sb.Length = 0;
-                    }
-                    tokens.Add(c.ToString());
-                    i++;
-                }
-                else
-                {
-                    c = expression[i].ToString(); 
-                    if (operators.IndexOf(" " + c + " ") >= 0)
-                    {
-                        if ((sb.Length > 0))
-                        {
-                            tokens.Add(sb.ToString());
-                            sb.Length = 0;
-                        }
-                        tokens.Add(c.ToString());
-                    }
-                    else
-                    {
-                        if (c != " ")
-                        {
-                            sb.Append(c);
-                        }
-                        else
-                        {
-                            tokens.Add(sb.ToString());
-                            sb.Clear();
-                        }
-                    }
-                }
-              
-            }
-
-            if ((sb.Length > 0))
-            {
-                tokens.Add(sb.ToString());
-            }
-            tokens= tokens.Where(p=>!string.IsNullOrEmpty(p)).ToList();
-            return tokens;
-        }
+       
     }
     
 }
