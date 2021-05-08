@@ -10,3 +10,15 @@ C:\code\20211\bin\Debug\netcoreapp2.1\DynamicExpr.pdb
 C:\code\20211\obj\Debug\netcoreapp2.1\DynamicExpr.dll
 C:\code\20211\obj\Debug\netcoreapp2.1\DynamicExpr.pdb
 C:\code\20211\obj\Debug\netcoreapp2.1\DynamicExpr.genruntimeconfig.cache
+C:\code\DynamicExpr\obj\Debug\netcoreapp2.1\DynamicExpr.csprojAssemblyReference.cache
+C:\code\DynamicExpr\obj\Debug\netcoreapp2.1\DynamicExpr.AssemblyInfoInputs.cache
+C:\code\DynamicExpr\obj\Debug\netcoreapp2.1\DynamicExpr.AssemblyInfo.cs
+C:\code\DynamicExpr\obj\Debug\netcoreapp2.1\DynamicExpr.csproj.CoreCompileInputs.cache
+C:\code\DynamicExpr\obj\Debug\netcoreapp2.1\DynamicExpr.dll
+C:\code\DynamicExpr\obj\Debug\netcoreapp2.1\DynamicExpr.pdb
+C:\code\DynamicExpr\bin\Debug\netcoreapp2.1\DynamicExpr.deps.json
+C:\code\DynamicExpr\bin\Debug\netcoreapp2.1\DynamicExpr.runtimeconfig.json
+C:\code\DynamicExpr\bin\Debug\netcoreapp2.1\DynamicExpr.runtimeconfig.dev.json
+C:\code\DynamicExpr\bin\Debug\netcoreapp2.1\DynamicExpr.dll
+C:\code\DynamicExpr\bin\Debug\netcoreapp2.1\DynamicExpr.pdb
+C:\code\DynamicExpr\obj\Debug\netcoreapp2.1\DynamicExpr.genruntimeconfig.cache

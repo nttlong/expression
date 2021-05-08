@@ -36,9 +36,10 @@ namespace DynamicExpr
                 Code=p,
                 Name=p+"--"
             });
-            var nl = dx.Select(SX1.Compile()).Cast<dynamic>().Select(p=> new { 
+            var nl = dx.Select(SX1.Compile()).Cast<dynamic>()
+                .Select(p=> new { 
                 Fx=p.MyCode
-            }.ToArray();
+            }).ToArray();
             Console.WriteLine("Hello World!");
         }
     }
