@@ -14,8 +14,8 @@ namespace DynamicExpr
         static void Main(string[] args)
         {
             //not((Code={code}+' ') and (x=2))
-            var mm = "not(Code={code}+' ' and d=1 or v<>3)".ToTokens();
-            var rx=mm.FixBinaryLogical("and").FixBinaryLogical("or").FixBinaryLogical("=").FixBinaryLogical("<>");
+            var mm = "nde={code}+' ' or x=1 and n=2".ToTokens();
+            var rx = mm.FixBinaryLogical("=");//.FixBinaryLogical("and").FixBinaryLogical("or");//.FixBinaryLogical("<>");
             Console.WriteLine(rx.RebuilFromTokens());
             var tk = TokenParsers.GetTokens("X.FirstName & '--' & X.LastName=M.cODE");
             var fx="FirstName & '--' & LastName".ToFxExpression();
