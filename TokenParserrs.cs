@@ -7,9 +7,13 @@ namespace DynamicExpr
 {
     public static class TokenParsers
     {
+        internal const string formatStr = " ( ) ' & : ";
+        internal const string mathOpsLevel1 = " * / % ";
+        internal const string mathOpsLevel2 = " + - ";
+        internal const string compareOps = " = <> > >= < <= ";
         internal const string logicOps = " and or not ";
-        internal const string operators = " ( ) ^ * / + - = != <> and or >= <= > < == ' & : ";
-        internal static string[] _operators = { "-", "+", "/", "*", "^", "=", "==", ">=", "<=", "!=", "<>", ">", "<", "and", "or", "&" };
+        internal static string operators => formatStr + mathOpsLevel1 + mathOpsLevel2 + compareOps + logicOps;   //" ( ) ^ * / % + - = != <> and or >= <= > < == ' & : ";
+        internal static string[] _operators => operators.Split(" ");  //{ "-", "+", "/","%", "*", "^", "=", "==", ">=", "<=", "!=", "<>", ">", "<", "and", "or", "&" };
 
         internal static List<string> ApplyQuote(List<string> Tokens)
         {
@@ -161,71 +165,98 @@ namespace DynamicExpr
         }
         internal static List<string> FixBinaryLogical(this List<string> Tokens, string op)
         {
-            var st = new Stack<string>();
-            var bcount = 0;
+            
+            var ret = new Stack<string>();
             for (var i = 0; i < Tokens.Count; i++)
             {
                 var tk = Tokens[i];
-                if (tk != op)
+                if (tk == op)
                 {
-                    st.Push(tk);
-                    continue;
-                }
-                var l = st.Pop();
-                if (l != ")")
-                {
-                    var stl = new Stack<string>();
-
-                    stl.Push(")");
-                    stl.Push(l);
-                   
-                    while (st.Count > 0 && logicOps.IndexOf(" " + l + " ") == -1)
+                    var a = ret.Pop();
+                    if (a != ")")
                     {
-                        l = st.Pop();
-                       
-                        stl.Push(l);
+                        var b = Tokens[i + 1];
+                        var tmp = new Stack<string>();
                         
+                        while(logicOps.IndexOf(" "+a+" ") == -1 && ret.Count>0)
+                        {
+                            tmp.Push(a);
+                            a = ret.Pop();
+                           
+                        }
+                        if (logicOps.IndexOf(" " + a + " ") == -1)
+                        {
+                            tmp.Push(a);
+                            var tmpCount = 0;
+                            ret.Push("(");
+                            while (tmp.Count > 0)
+                            {
+                                ret.Push(tmp.Pop());
+                                tmpCount++;
+                            }
+                            if (tmpCount>1)
+                             ret.Push(")");
+                        }
+                        else
+                        {
+                            ret.Push(a);
+                            ret.Push("(");
+                            while (tmp.Count > 0) ret.Push(tmp.Pop());
+                           
+                        }
+                        
+                        
+                        ret.Push(tk);
+                        i++;
+                        if (i < Tokens.Count && Tokens[i]!="(")
+                        {
+                            var fx = ret.Pop();
+                            if (fx!=op)
+                            {
+                                ret.Push(fx);
+                                ret.Push("(");
+                            }
+                            else
+                            {
+                                ret.Push(tk);
+                                ret.Push("(");
+                            }
+                            var tkCount = 0;
+                            while (i < Tokens.Count && logicOps.IndexOf(" " + Tokens[i] + " ") == -1)
+                            {
+                                ret.Push(Tokens[i]);
+                                i++;
+                                tkCount++;
+                            }
+                           
+                            i--;
+                            if (tkCount > 1)
+                            {
+                                ret.Push(")");
+                            }
+                            else
+                            {
+                                var tk1 = ret.Pop();
+                                ret.Pop();
+                                
+                                ret.Push(tk1);
+                                ret.Push(")");
+                            }
+                        }
+                       
                     }
-
-
-                    
-                    stl.Push("(");
-                    while (stl.Count > 0)
+                    else
                     {
-                        st.Push(stl.Pop());
+                        ret.Push(a);
                     }
-
-                    st.Push(tk);
                 }
                 else
                 {
-                    //st.Push(l);
-                    st.Push(tk);
-                }
-                i++;
-                
-                st.Push("(");
-                while (i < Tokens.Count && logicOps.IndexOf(" " + Tokens[i] + " ") == -1)
-                {
-                    if (Tokens[i] == op)
-                    {
-                        break;
-                    }
-                    st.Push(Tokens[i++]);
-                }
-
-                st.Push(")");
-                if (i < Tokens.Count)
-                {
-                    st.Push(Tokens[i]);
+                    ret.Push(tk);
                 }
 
             }
-            if (bcount > 0)
-                st.Push(")");
-            var ret = st.Reverse().ToList();
-
-            return ret;
+            return ret.Reverse().ToList();
         }
         internal static string RebuilFromTokens(this List<string> Tokens)
         {
